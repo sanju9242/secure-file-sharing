@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { supabaseAdmin } from './supabase.js';
+import { getSupabaseStatus, supabaseAdmin } from './supabase.js';
 
 export function getEncryptionKey() {
   const encoded = process.env.FILE_ENCRYPTION_KEY?.trim();
@@ -33,6 +33,9 @@ export function decryptBuffer(input) {
 export async function requireAuth(req, res, next) {
   const token = req.headers.authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return res.status(401).json({ error: 'Please log in.' });
+  if (!getSupabaseStatus().configured) {
+    return res.status(503).json({ error: 'Backend authentication is not configured.' });
+  }
 
   try {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
