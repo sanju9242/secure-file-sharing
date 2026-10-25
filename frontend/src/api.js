@@ -14,7 +14,11 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(undefined, async (error) => {
-  if (error.response?.status === 401 && error.config?.headers?.Authorization) {
+  if (
+    error.response?.status === 401
+    && error.response.data?.error === 'Session expired. Please log in again.'
+    && error.config?.headers?.Authorization
+  ) {
     await supabase.auth.signOut({ scope: 'local' });
   }
   return Promise.reject(error);
